@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard Keuangan</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h2>Dashboard Keuangan</h2>
+
+<form method="get">
+Start: <input type="date" name="start" value="{{start_date}}">
+End: <input type="date" name="end" value="{{end_date}}">
+<button type="submit">Filter</button>
+</form>
+
+<a href="{{ url_for('export_csv_route') }}">Export CSV</a>
+<a href="{{ url_for('ping') }}">Ping Keep-alive</a>
+
+<canvas id="myChart" width="400" height="200"></canvas>
+<script>
+var ctx = document.getElementById('myChart').getContext('2d');
+var chart = new Chart(ctx,{
+    type:'pie',
+    data:{
+        labels: {{ chart_data.keys()|list }},
+        datasets:[{
+            label:'Jumlah per Kategori',
+            data: {{ chart_data.values()|list }},
+            backgroundColor:[
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+            ],
+        }]
+    },
+});
+</script>
+
+<h3>Progress Menabung</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+<tr><th>Kategori</th><th>Total</th><th>Target</th><th>Progress</th></tr>
+{% for p in progress %}
+<tr>
+<td>{{p.kategori}}</td>
+<td>Rp{{"{:,.0f}".format(p.total)}}</td>
+<td>Rp{{"{:,.0f}".format(p.target)}}</td>
+<td>
+<div style="width:300px;background:#ddd">
+<div style="width:{{p.percent}}%;background:green;color:white;text-align:center">
+{{p.percent}}%
+</div>
+</div>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Tabungan Emas</h3>
+<p>
+Total Emas: <b>{{ total_gram|round(3) }} gram</b><br>
+Harga Emas Saat Ini: Rp{{ "{:,.0f}".format(harga_emas) }}/gram<br>
+Nilai Setara: <b>Rp{{ "{:,.0f}".format(nilai_total_emas) }}</b>
+</p>
+
+<table border="1" cellpadding="5" cellspacing="0">
+<tr>
+<th>ID</th><th>User</th><th>Jenis</th><th>Kategori</th><th>Jumlah/Gram</th><th>Tanggal</th><th>Catatan</th>
+</tr>
+{% for t in data %}
+<tr>
+<td>{{t.id}}</td>
+<td>{{t.user_id}}</td>
+<td>{{ getattr(t,'jenis','Emas') }}</td>
+<td>{{ getattr(t,'kategori','Emas') }}</td>
+<td>{{ getattr(t,'jumlah', getattr(t,'berat_gram','')) }}</td>
+<td>{{t.tanggal}}</td>
+<td>{{t.note}}</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>
